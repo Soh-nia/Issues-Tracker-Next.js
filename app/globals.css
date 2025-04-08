@@ -1,0 +1,16 @@
+@import "tailwindcss";
+
+@plugin "daisyui" {
+  themes: winter --default, dracula --prefersdark, pastel, emerald;
+  root: ":root";
+  include: ;
+  exclude: ;
+  prefix: ;
+  logs: true;
+}
+
+@layer components {
+  .nav-link {
+    @apply transition-colors duration-200;
+  }
+}
