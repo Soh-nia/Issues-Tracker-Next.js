@@ -9,13 +9,14 @@ import { Suspense } from 'react';
 import { IssueDetailSkeleton } from '../_components/IssueDetailSkeleton';
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 const fetchUser = cache((issueId: number) => prisma.issue.findUnique({ where: { id: issueId } }));
 
 const IssueDetailPage = async ({ params }: Props) => {
-  const issue = await fetchUser(parseInt(params.id));
+  const resolvedParams = await params;
+  const issue = await fetchUser(parseInt(resolvedParams.id));
 
   if (!issue) notFound();
 
@@ -40,7 +41,8 @@ const IssueDetailPage = async ({ params }: Props) => {
 };
 
 export async function generateMetadata({ params }: Props) {
-  const issue = await fetchUser(parseInt(params.id));
+  const resolvedParams = await params;
+  const issue = await fetchUser(parseInt(resolvedParams.id));
 
   return {
     title: issue?.title,

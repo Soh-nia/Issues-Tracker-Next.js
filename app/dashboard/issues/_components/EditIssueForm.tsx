@@ -14,7 +14,7 @@ interface Props {
 
 const IssueForm = ({ issue, id }: Props) => {
   const initialState: State = { message: null, errors: {} };
-  const updateIssueWithId = updateIssue.bind(null, id); // Bind the id to the action
+  const updateIssueWithId = updateIssue.bind(null, id);
   const [state, formAction] = useActionState(updateIssueWithId, initialState);
 
   return (
@@ -32,7 +32,7 @@ const IssueForm = ({ issue, id }: Props) => {
                   type="text"
                   id="title"
                   name="title"
-                  defaultValue={issue.title} // Prefill with issue title
+                  defaultValue={issue.title}
                   placeholder=""
                   className="input input-lg border-base-300"
                 />
@@ -53,7 +53,7 @@ const IssueForm = ({ issue, id }: Props) => {
                 <textarea
                   id="description"
                   name="description"
-                  defaultValue={issue.description} // Prefill with issue description
+                  defaultValue={issue.description}
                   placeholder=""
                   className="textarea textarea-lg border-base-300"
                 />
@@ -78,7 +78,7 @@ const IssueForm = ({ issue, id }: Props) => {
                       name="status"
                       value="OPEN"
                       id="open"
-                      defaultChecked={issue.status === 'OPEN'} // Prefill based on issue status
+                      defaultChecked={issue.status === 'OPEN'}
                       className="radio radio-lg bg-secondary border-secondary-content checked:bg-secondary-content checked:text-secondary checked:border-neutral"
                     />
                     <label htmlFor="open" className="ml-2 cursor-pointer text-base font-medium">
@@ -91,7 +91,7 @@ const IssueForm = ({ issue, id }: Props) => {
                       name="status"
                       value="IN_PROGRESS"
                       id="progress"
-                      defaultChecked={issue.status === 'IN_PROGRESS'} // Prefill based on issue status
+                      defaultChecked={issue.status === 'IN_PROGRESS'}
                       className="radio radio-lg bg-info border-info-content checked:bg-info-content checked:text-info checked:border-neutral"
                     />
                     <label htmlFor="progress" className="ml-2 cursor-pointer text-base font-medium">
@@ -104,7 +104,7 @@ const IssueForm = ({ issue, id }: Props) => {
                       name="status"
                       value="CLOSED"
                       id="closed"
-                      defaultChecked={issue.status === 'CLOSED'} // Prefill based on issue status
+                      defaultChecked={issue.status === 'CLOSED'}
                       className="radio radio-lg bg-success border-success-content checked:bg-success-content checked:text-success checked:border-neutral"
                     />
                     <label htmlFor="closed" className="ml-2 cursor-pointer text-base font-medium">
