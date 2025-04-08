@@ -17,7 +17,7 @@ const LatestIssues = async () => {
   return (
     <div className="card bg-base-100 shadow-sm">
         <div className="card-body">
-            <h4 className={`text-4xl font-bold`}>Latest Issues</h4>
+            <h4 className={`text-3xl font-bold`}>Latest Issues</h4>
             <div className="overflow-x-auto">
                 <table className="table">
                     <tbody>

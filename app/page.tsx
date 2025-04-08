@@ -9,8 +9,8 @@ const lusitana = Lusitana({ subsets: ['latin'], weight: ['400', '700'], });
 
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col p-6">
-      <div className="navbar bg-primary-content shadow-sm">
+    <main className="flex min-h-screen flex-col">
+      <div className="navbar bg-primary-content shadow-sm px-8 py-3">
         <div className="flex-1">
           <Logo />
         </div>

@@ -25,7 +25,7 @@ export default async function Page() {
   // }
 
   return (
-    <div className="grid gap-6 grid-cols-2 p-10">
+    <div className="p-5 md:p-10 flex grow flex-col gap-6 md:flex-row">
       <div className="flex flex-col gap-5">
         <IssueSummary
           open={open}

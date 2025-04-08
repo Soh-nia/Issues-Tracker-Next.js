@@ -14,7 +14,7 @@ const IssueForm = () => {
     return (
         <div className="max-w-md text-neutral">
             <form action={formAction}>
-                <div className="card card-dash card-xl bg-base-100 w-full shadow-xl rounded-md p-4">
+                <div className="card card-dash card-xl bg-base-100 w-full shadow-xl rounded-md px-5 py-10">
                 <div className="card-body">
                     <div className="">
                     {/* Title */}
@@ -27,7 +27,7 @@ const IssueForm = () => {
                         id="title"
                         name="title"
                         placeholder=""
-                        className="input input-lg"
+                        className="input input-lg border-base-300"
                         />
                         <div id="title-error" aria-live="polite" aria-atomic="true">
                         {state.errors?.title &&
@@ -47,7 +47,7 @@ const IssueForm = () => {
                         id="description"
                         name="description"
                         placeholder=""
-                        className="textarea textarea-lg"
+                        className="textarea textarea-lg border-base-300"
                         />
                         <div id="description-error" aria-live="polite" aria-atomic="true">
                         {state.errors?.description &&
@@ -71,7 +71,7 @@ const IssueForm = () => {
                             value="OPEN"
                             id="open"
                             defaultChecked // Set OPEN as the default
-                            className="radio radio-lg bg-secondary border-secondary-content checked:bg-secondary-content checked:text-secondary checked:border-secondary"
+                            className="radio radio-lg bg-secondary border-secondary-content checked:bg-secondary-content checked:text-secondary checked:border-neutral"
                             />
                             <label
                             htmlFor="open"
@@ -86,7 +86,7 @@ const IssueForm = () => {
                             name="status"
                             value="IN_PROGRESS"
                             id="progress"
-                            className="radio radio-lg bg-info border-info-content checked:bg-info-content checked:text-info checked:border-info"
+                            className="radio radio-lg bg-info border-info-content checked:bg-info-content checked:text-info checked:border-neutral"
                             />
                             <label
                             htmlFor="progress"
@@ -101,7 +101,7 @@ const IssueForm = () => {
                             name="status"
                             value="CLOSED"
                             id="closed"
-                            className="radio radio-lg bg-success border-success-content checked:bg-success-content checked:text-success checked:border-success"
+                            className="radio radio-lg bg-success border-success-content checked:bg-success-content checked:text-success checked:border-neutral"
                             />
                             <label
                             htmlFor="closed"

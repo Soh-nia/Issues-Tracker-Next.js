@@ -24,7 +24,7 @@ const IssueSummary = ({ open, inProgress, closed }: Props) => {
   ];
 
   return (
-    <div className="flex flex-row gap-4">
+    <div className="flex flex-col gap-4 md:flex-row">
       {containers.map((container) => (
         <div className="card bg-base-100 shadow-sm" key={container.label}>
             <div className="card-body">
