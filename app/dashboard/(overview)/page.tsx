@@ -25,8 +25,8 @@ export default async function Page() {
   // }
 
   return (
-    <div className="p-5 md:p-10 flex grow flex-col gap-6 md:flex-row">
-      <div className="flex flex-col gap-5">
+    <div className="p-5 flex flex-col gap-6 md:flex-row md:p-10">
+      <div className="flex flex-col gap-5 md:w-3/6">
         <IssueSummary
           open={open}
           inProgress={inProgress}
@@ -38,7 +38,9 @@ export default async function Page() {
           closed={closed}
         />
       </div>
+      <div className='md:w-3/6'>
       <LatestIssues />
+      </div>
     </div>
   );
 }

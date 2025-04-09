@@ -1,11 +1,18 @@
 import React from 'react';
+import Navbar from '../Navbar';
+import LoginForm from './LoginForm';
+import { Suspense } from 'react';
 
-const page = () => {
+
+const LoginPage = () => {
   return (
-    <div>
-      Hello
-    </div>
+    <main className="">
+      <Navbar />
+      <Suspense>
+        <LoginForm />
+      </Suspense>
+    </main>
   );
 }
 
-export default page;
+export default LoginPage;

@@ -1,21 +1,22 @@
-'use client';
+"use client";
 
-import Spinner from '@/app/components/Spinner';
-import { Issue, User } from '@prisma/client';
-import toast, { Toaster } from 'react-hot-toast';
-import { useState, useTransition, useEffect } from 'react';
-import { updateIssue } from '@/app/lib/action';
-import { useRouter } from 'next/navigation';
+import Spinner from "@/app/components/Spinner";
+import { Issue, User } from "@prisma/client";
+import toast, { Toaster } from "react-hot-toast";
+import { useState, useTransition, useEffect } from "react";
+import { updateIssue } from "@/app/lib/action";
+import { useRouter } from "next/navigation";
 
 async function fetchUsers(): Promise<User[]> {
-  const response = await fetch('/api/users', { cache: 'no-store' });
-  if (!response.ok) throw new Error('Failed to fetch users');
+  const response = await fetch("/api/users", { cache: "no-store" });
+  if (!response.ok) throw new Error("Failed to fetch users");
   return response.json();
 }
 
 const AssigneeSelect = ({ issue }: { issue: Issue }) => {
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(issue.assignedToUserId || null);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -23,25 +24,31 @@ const AssigneeSelect = ({ issue }: { issue: Issue }) => {
     fetchUsers()
       .then((data) => setUsers(data))
       .catch(() => {
-        setError('Failed to load users');
-        toast.error('Failed to load users');
+        setError("Failed to load users");
+        toast.error("Failed to load users");
       });
   }, []);
 
+  useEffect(() => {
+    setSelectedUserId(issue.assignedToUserId || null);
+  }, [issue.assignedToUserId]);
+
   const assignIssue = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const userId = event.target.value === 'null' ? null : event.target.value;
+    const userId = event.target.value === "null" ? null : event.target.value;
+    setSelectedUserId(userId);
 
     startTransition(async () => {
       const formData = new FormData();
-      if (userId) formData.append('assignedToUserId', userId);
-      else formData.append('assignedToUserId', ''); // Empty string for null
+      formData.append("assignedToUserId", userId || "");
 
-      const result = await updateIssue(issue.id.toString(), {}, formData);
-      if (result.message) {
-        setError(result.message);
-        toast.error(result.message);
+      // No redirectTo (undefined) for AssigneeSelect
+      const result = await updateIssue(issue.id.toString(), undefined, { message: null, errors: {} }, formData);
+      if (result?.message || result?.errors) {
+        setError(result.message || "Failed to assign issue");
+        toast.error(result.message || "Failed to assign issue");
+        setSelectedUserId(issue.assignedToUserId || null);
       } else {
-        toast.success('Issue assigned successfully');
+        toast.success("Issue assigned successfully");
         router.refresh();
       }
     });
@@ -51,7 +58,7 @@ const AssigneeSelect = ({ issue }: { issue: Issue }) => {
     <>
       <select
         className="select select-lg border-base-300"
-        defaultValue={issue.assignedToUserId || 'null'}
+        value={selectedUserId || "null"}
         onChange={assignIssue}
         disabled={isPending || error !== null}
       >
@@ -66,7 +73,6 @@ const AssigneeSelect = ({ issue }: { issue: Issue }) => {
       </select>
       {isPending && <Spinner />}
       {error && <p className="text-error mt-2">{error}</p>}
-      {/* <label className="block mt-2 text-sm text-base-content">Suggestions</label> */}
       <Toaster />
     </>
   );

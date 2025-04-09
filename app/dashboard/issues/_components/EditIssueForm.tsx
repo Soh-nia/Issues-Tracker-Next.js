@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import Spinner from '@/app/components/Spinner';
-import { useActionState } from 'react';
-import { updateIssue, State } from '@/app/lib/action';
-import Link from 'next/link';
-import { useFormStatus } from 'react-dom';
-import { Issue } from '@prisma/client';
+import Spinner from "@/app/components/Spinner";
+import { useActionState } from "react";
+import { updateIssue, State } from "@/app/lib/action";
+import Link from "next/link";
+import { useFormStatus } from "react-dom";
+import { Issue } from "@prisma/client";
 
 interface Props {
   issue: Issue;
@@ -14,7 +14,8 @@ interface Props {
 
 const IssueForm = ({ issue, id }: Props) => {
   const initialState: State = { message: null, errors: {} };
-  const updateIssueWithId = updateIssue.bind(null, id);
+  // Bind only id and redirectTo, leaving prevState and formData unbound
+  const updateIssueWithId = updateIssue.bind(null, id, "/dashboard/issues/list");
   const [state, formAction] = useActionState(updateIssueWithId, initialState);
 
   return (
@@ -78,7 +79,7 @@ const IssueForm = ({ issue, id }: Props) => {
                       name="status"
                       value="OPEN"
                       id="open"
-                      defaultChecked={issue.status === 'OPEN'}
+                      defaultChecked={issue.status === "OPEN"}
                       className="radio radio-lg bg-secondary border-secondary-content checked:bg-secondary-content checked:text-secondary checked:border-neutral"
                     />
                     <label htmlFor="open" className="ml-2 cursor-pointer text-base font-medium">
@@ -91,7 +92,7 @@ const IssueForm = ({ issue, id }: Props) => {
                       name="status"
                       value="IN_PROGRESS"
                       id="progress"
-                      defaultChecked={issue.status === 'IN_PROGRESS'}
+                      defaultChecked={issue.status === "IN_PROGRESS"}
                       className="radio radio-lg bg-info border-info-content checked:bg-info-content checked:text-info checked:border-neutral"
                     />
                     <label htmlFor="progress" className="ml-2 cursor-pointer text-base font-medium">
@@ -104,7 +105,7 @@ const IssueForm = ({ issue, id }: Props) => {
                       name="status"
                       value="CLOSED"
                       id="closed"
-                      defaultChecked={issue.status === 'CLOSED'}
+                      defaultChecked={issue.status === "CLOSED"}
                       className="radio radio-lg bg-success border-success-content checked:bg-success-content checked:text-success checked:border-neutral"
                     />
                     <label htmlFor="closed" className="ml-2 cursor-pointer text-base font-medium">

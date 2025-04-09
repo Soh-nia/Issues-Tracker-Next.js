@@ -33,9 +33,9 @@ const LatestIssues = async () => {
                                         </div>
                                         {issue.assignedToUser && (
                                             <div className="avatar">
-                                                <div className="mask mask-squircle h-12 w-12">
+                                                <div className="mask mask-circle h-10 w-10">
                                                     <Image
-                                                        src={issue.assignedToUser.image ?? '/default.jpg'}
+                                                        src={issue.assignedToUser.image ?? '/default.png'}
                                                         width={12}
                                                         height={12}
                                                         alt="User Avatar"
