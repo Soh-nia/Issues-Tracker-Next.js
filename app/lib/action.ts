@@ -156,7 +156,7 @@ export async function authenticate(prevState: string | undefined, formData: Form
     try {
         console.log('FormData received:', Object.fromEntries(formData));
         await signIn('credentials', formData);
-        return 'Login successful'; // Return success to trigger client-side redirect
+        return 'Login successful';
     } catch (error) {
         console.error('Authenticate error:', error);
         if (error instanceof AuthError) {
@@ -174,7 +174,6 @@ export async function authenticate(prevState: string | undefined, formData: Form
                     return `Something went wrong: ${error.message}`;
             }
         }
-        // Handle NEXT_REDIRECT as a non-error case
         if (error instanceof Error && error.message === 'NEXT_REDIRECT') {
             return undefined;
         }

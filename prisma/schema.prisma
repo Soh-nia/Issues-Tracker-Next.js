@@ -37,29 +37,29 @@ model User {
   emailVerified  DateTime?
   image          String?
   password       String?   @db.Text
-  // accounts       Account[]
+  accounts       Account[]
   // sessions       Session[]
   assignedIssues Issue[]
 }
 
-// model Account {
-//   id                String  @id @default(cuid())
-//   userId            String
-//   type              String
-//   provider          String
-//   providerAccountId String
-//   refresh_token     String? @db.Text
-//   access_token      String? @db.Text
-//   expires_at        Int?
-//   token_type        String?
-//   scope             String?
-//   id_token          String? @db.Text
-//   session_state     String?
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
-//   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-//   @@unique([provider, providerAccountId])
-// }
+  @@unique([provider, providerAccountId])
+}
 
 // model Session {
 //   id           String   @id @default(cuid())
