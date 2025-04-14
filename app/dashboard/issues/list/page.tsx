@@ -10,6 +10,9 @@ import { auth } from '@/auth';
 import Image from 'next/image';
 import Link from 'next/link';
 
+// Force dynamic rendering to avoid static prerendering issues
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Issue Tracker - Issue List',
   description: 'View all your project issues',
@@ -78,17 +81,19 @@ export default async function IssuesPage({ searchParams }: { searchParams?: Prom
               </Link>
             </div>
           ) : (
-            <>
-              <Suspense fallback={<div className="h-10 bg-gray-200 animate-pulse rounded"></div>}>
-                <IssueActions />
-              </Suspense>
-              <Suspense key={page} fallback={<IssuesTableSkeleton />}>
-                <IssueTable searchParams={resolvedSearchParams || ({} as IssueQuery)} issues={issues} />
-              </Suspense>
-              <Suspense fallback={<div className="h-8 w-40 bg-gray-200 animate-pulse rounded mt-3"></div>}>
-                <Pagination pageSize={pageSize} currentPage={page} itemCount={totalIssues} />
-              </Suspense>
-            </>
+            <Suspense
+              fallback={
+                <div>
+                  <div className="h-10 bg-gray-200 animate-pulse rounded mb-4"></div>
+                  <IssuesTableSkeleton />
+                  <div className="h-8 w-40 bg-gray-200 animate-pulse rounded mt-3"></div>
+                </div>
+              }
+            >
+              <IssueActions />
+              <IssueTable searchParams={resolvedSearchParams || ({} as IssueQuery)} issues={issues} />
+              <Pagination pageSize={pageSize} currentPage={page} itemCount={totalIssues} />
+            </Suspense>
           )}
         </div>
       </div>
