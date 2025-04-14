@@ -4,7 +4,7 @@ import prisma from '@/lib/prisma';
 import { patchIssueSchema, issueSchema } from '@/app/validationSchemas';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { signIn, signOut } from '@/auth';
+import { signIn, signOut, auth } from '@/auth';
 import { AuthError } from 'next-auth';
 
 export type State = {
@@ -14,7 +14,20 @@ export type State = {
     message?: string | null;
 };
 
+export interface MinimalUser {
+    id: string;
+    name: string | null;
+    email: string | null;
+}
+
 export async function createIssue(prevState: State, formData: FormData): Promise<State> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return {
+            message: 'You must be signed in to create an issue.',
+        };
+    }
+
     const validatedFields = issueSchema.safeParse({
         title: formData.get('title'),
         description: formData.get('description'),
@@ -30,11 +43,22 @@ export async function createIssue(prevState: State, formData: FormData): Promise
 
     const { title, description, status } = validatedFields.data;
     try {
+        // Verify user exists
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+        });
+        if (!user) {
+            return {
+                message: 'User not found. Cannot create issue.',
+            };
+        }
+
         await prisma.issue.create({
             data: {
                 title,
                 description,
                 status: status || 'OPEN',
+                createdByUserId: session.user.id,
             },
         });
     } catch (error) {
@@ -56,6 +80,13 @@ export async function updateIssue(
     prevState: State,
     formData: FormData
 ): Promise<State> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return {
+            message: 'You must be signed in to update an issue.',
+        };
+    }
+
     const validatedFields = patchIssueSchema.safeParse({
         title: formData.get('title') || undefined,
         description: formData.get('description') || undefined,
@@ -77,18 +108,20 @@ export async function updateIssue(
         return { message: 'No fields provided to update.' };
     }
 
-    if (assignedToUserId) {
-        const user = await prisma.user.findUnique({
-            where: { id: assignedToUserId },
-        });
-        if (!user) return { message: 'Invalid user.' };
-    }
-
-    const issue = await prisma.issue.findUnique({
-        where: { id: parseInt(id) },
+    const issue = await prisma.issue.findFirst({
+        where: {
+            id: parseInt(id),
+            createdByUserId: session.user.id,
+        },
     });
 
-    if (!issue) return { message: 'Invalid issue' };
+    if (!issue) {
+        return { message: 'Issue not found or you do not have permission to update it.' };
+    }
+
+    if (assignedToUserId && assignedToUserId !== session.user.id) {
+        return { message: 'You can only assign this issue to yourself.' };
+    }
 
     try {
         await prisma.issue.update({
@@ -118,17 +151,27 @@ export async function updateIssue(
 }
 
 export async function deleteIssue(id: string): Promise<State> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return {
+            message: 'You must be signed in to delete an issue.',
+        };
+    }
+
+    const issue = await prisma.issue.findFirst({
+        where: {
+            id: parseInt(id),
+            createdByUserId: session.user.id,
+        },
+    });
+
+    if (!issue) {
+        return {
+            message: 'Issue not found or you do not have permission to delete it.',
+        };
+    }
+
     try {
-        const issue = await prisma.issue.findUnique({
-            where: { id: parseInt(id) },
-        });
-
-        if (!issue) {
-            return {
-                message: 'Invalid issue',
-            };
-        }
-
         await prisma.issue.delete({
             where: { id: issue.id },
         });
@@ -146,6 +189,24 @@ export async function deleteIssue(id: string): Promise<State> {
 export async function getUsers() {
     const users = await prisma.user.findMany({ orderBy: { name: 'asc' } });
     return users;
+}
+
+export async function getCurrentUser(): Promise<MinimalUser | null> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return null;
+    }
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            select: { id: true, name: true, email: true },
+        });
+        return user;
+    } catch (error) {
+        console.error('Database Error:', error);
+        return null;
+    }
 }
 
 export async function signOutAction() {

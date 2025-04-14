@@ -1,33 +1,45 @@
 "use client";
 
 import Spinner from "@/app/components/Spinner";
-import { Issue, User } from "@prisma/client";
+import { Issue } from "@prisma/client";
 import toast, { Toaster } from "react-hot-toast";
 import { useState, useTransition, useEffect } from "react";
-import { updateIssue } from "@/app/lib/action";
+import { updateIssue, getCurrentUser } from "@/app/lib/action";
 import { useRouter } from "next/navigation";
 
-async function fetchUsers(): Promise<User[]> {
-  const response = await fetch("/api/users", { cache: "no-store" });
-  if (!response.ok) throw new Error("Failed to fetch users");
-  return response.json();
+// Define a minimal User type matching getCurrentUser's return
+interface MinimalUser {
+  id: string;
+  name: string | null;
+  email: string | null;
 }
 
 const AssigneeSelect = ({ issue }: { issue: Issue }) => {
   const router = useRouter();
-  const [users, setUsers] = useState<User[]>([]);
+  const [user, setUser] = useState<MinimalUser | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(issue.assignedToUserId || null);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchUsers()
-      .then((data) => setUsers(data))
+    getCurrentUser()
+      .then((data) => {
+        if (data) {
+          setUser(data);
+          // If the issue is assigned to someone else, reset to unassigned
+          if (issue.assignedToUserId && issue.assignedToUserId !== data.id) {
+            setSelectedUserId(null);
+          }
+        } else {
+          setError("Failed to load user data");
+          toast.error("Failed to load user data");
+        }
+      })
       .catch(() => {
-        setError("Failed to load users");
-        toast.error("Failed to load users");
+        setError("Failed to load user data");
+        toast.error("Failed to load user data");
       });
-  }, []);
+  }, [issue.assignedToUserId]);
 
   useEffect(() => {
     setSelectedUserId(issue.assignedToUserId || null);
@@ -41,7 +53,6 @@ const AssigneeSelect = ({ issue }: { issue: Issue }) => {
       const formData = new FormData();
       formData.append("assignedToUserId", userId || "");
 
-      // No redirectTo (undefined) for AssigneeSelect
       const result = await updateIssue(issue.id.toString(), undefined, { message: null, errors: {} }, formData);
       if (result?.message || result?.errors) {
         setError(result.message || "Failed to assign issue");
@@ -54,6 +65,10 @@ const AssigneeSelect = ({ issue }: { issue: Issue }) => {
     });
   };
 
+  if (!user) {
+    return <Spinner />;
+  }
+
   return (
     <>
       <select
@@ -65,11 +80,9 @@ const AssigneeSelect = ({ issue }: { issue: Issue }) => {
         <option value="null" className="text-base">
           Unassigned
         </option>
-        {users.map((user) => (
-          <option key={user.id} value={user.id} className="text-base">
-            {user.name}
-          </option>
-        ))}
+        <option value={user.id} className="text-base">
+          {user.name || user.email}
+        </option>
       </select>
       {isPending && <Spinner />}
       {error && <p className="text-error mt-2">{error}</p>}

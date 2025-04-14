@@ -62,28 +62,49 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     callbacks: {
         async signIn({ account, profile }) {
             if (account?.provider === "google" && profile?.email) {
-                // Check if user exists, create if not
+                console.log('Google Profile:', profile);
+                console.log('Google Account:', account);
+                const googleProfile = profile as GoogleProfile;
+
+                // Check if user exists by email
                 let user = await prisma.user.findUnique({
                     where: { email: profile.email },
                 });
 
-                const googleProfile = profile as GoogleProfile;
-
                 if (!user) {
+                    // Create new user with Google sub as ID
                     user = await prisma.user.create({
                         data: {
-                            id: googleProfile.sub || undefined,
+                            id: googleProfile.sub!, // Use Google sub as ID
                             name: googleProfile.name || (googleProfile.email ? googleProfile.email.split('@')[0] : 'User'),
                             email: googleProfile.email,
                             image: googleProfile.picture,
                         },
                     });
-                } else if (!user.image && googleProfile.picture) {
-                    // Update image if user exists but has no image
-                    await prisma.user.update({
-                        where: { id: user.id },
-                        data: { image: googleProfile.picture },
+                } else if (user.id !== googleProfile.sub) {
+                    // Ensure Account links to the correct user
+                    const existingAccount = await prisma.account.findUnique({
+                        where: {
+                            provider_providerAccountId: {
+                                provider: "google",
+                                providerAccountId: account.providerAccountId,
+                            },
+                        },
                     });
+
+                    if (existingAccount && existingAccount.userId !== user.id) {
+                        await prisma.account.update({
+                            where: {
+                                provider_providerAccountId: {
+                                    provider: "google",
+                                    providerAccountId: account.providerAccountId,
+                                },
+                            },
+                            data: {
+                                userId: user.id,
+                            },
+                        });
+                    }
                 }
 
                 // Ensure Account entry exists
@@ -111,14 +132,34 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         },
                     });
                 }
+
+                console.log('User after signIn:', user);
+                return true;
             }
             return true;
         },
-        async jwt({ token, user }) {
+        async jwt({ token, user, account }) {
+            // Initial sign-in
             if (user) {
                 token.id = user.id;
                 token.image = user.image;
             }
+            // For Google provider, ensure token.id is correct
+            if (account?.provider === "google" && account.providerAccountId) {
+                const dbAccount = await prisma.account.findUnique({
+                    where: {
+                        provider_providerAccountId: {
+                            provider: "google",
+                            providerAccountId: account.providerAccountId,
+                        },
+                    },
+                    select: { userId: true },
+                });
+                if (dbAccount?.userId) {
+                    token.id = dbAccount.userId;
+                }
+            }
+            console.log('JWT Token:', token);
             return token;
         },
         async session({ session, token }) {
@@ -126,6 +167,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 session.user.id = token.id as string;
                 session.user.image = token.image as string | null;
             }
+            console.log('Session:', session);
             return session;
         },
     },

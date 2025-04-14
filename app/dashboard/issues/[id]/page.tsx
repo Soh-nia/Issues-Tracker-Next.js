@@ -7,16 +7,30 @@ import AssigneeSelect from './AssigneeSelect';
 import { cache } from 'react';
 import { Suspense } from 'react';
 import { IssueDetailSkeleton } from '../_components/IssueDetailSkeleton';
+import { auth } from '@/auth';
 
 interface Props {
   params: Promise<{ id: string }>;
 }
 
-const fetchUser = cache((issueId: number) => prisma.issue.findUnique({ where: { id: issueId } }));
+const fetchIssue = cache(async (issueId: number, userId: string) => {
+  return prisma.issue.findFirst({
+    where: { 
+      id: issueId,
+      createdByUserId: userId,
+    },
+  });
+});
 
 const IssueDetailPage = async ({ params }: Props) => {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return <div>Please sign in to view this issue.</div>;
+  }
+
   const resolvedParams = await params;
-  const issue = await fetchUser(parseInt(resolvedParams.id));
+  const issueId = parseInt(resolvedParams.id);
+  const issue = await fetchIssue(issueId, session.user.id);
 
   if (!issue) notFound();
 
@@ -41,12 +55,21 @@ const IssueDetailPage = async ({ params }: Props) => {
 };
 
 export async function generateMetadata({ params }: Props) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return {
+      title: 'Issue Tracker - Access Denied',
+      description: 'Please sign in to view this issue.',
+    };
+  }
+
   const resolvedParams = await params;
-  const issue = await fetchUser(parseInt(resolvedParams.id));
+  const issueId = parseInt(resolvedParams.id);
+  const issue = await fetchIssue(issueId, session.user.id);
 
   return {
-    title: issue?.title,
-    description: 'Details of issue ' + issue?.id,
+    title: issue?.title || 'Issue Not Found',
+    description: issue ? `Details of issue ${issue.id}` : 'Issue not found or access denied.',
   };
 }
 
